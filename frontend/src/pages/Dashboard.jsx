@@ -20,6 +20,9 @@ import SummaryCard from '../components/SummaryCard';
 import { SkeletonCard } from '../components/Skeleton';
 import TransactionModal from '../components/TransactionModal';
 import Button from '../components/Button';
+import ExpenseTargetCard from '../components/ExpenseTargetCard';
+import ExpenseTargetModal from '../components/ExpenseTargetModal';
+import { useExpenseTarget } from '../context/ExpenseTargetContext';
 
 // Custom tooltip for area chart
 const ChartTooltip = ({ active, payload, label }) => {
@@ -46,7 +49,9 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showTxModal, setShowTxModal] = useState(false);
+  const [showTargetModal, setShowTargetModal] = useState(false);
   const [txModalType, setTxModalType] = useState('EXPENSE');
+  const { fetchTargetStatus } = useExpenseTarget();
 
   const loadDashboard = useCallback(async () => {
     setIsLoading(true);
@@ -54,12 +59,13 @@ const Dashboard = () => {
     try {
       const res = await dashboardService.getSummary();
       setDashboardData(res.data.data);
+      await fetchTargetStatus();
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchTargetStatus]);
 
   useEffect(() => {
     loadDashboard();
@@ -233,69 +239,75 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
-      {/* Recent Transactions */}
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">Recent Transactions</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Your latest activity</p>
-          </div>
-          <button
-            onClick={() => navigate('/transactions')}
-            className="flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            View all <ArrowRight size={13} />
-          </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Expense Target */}
+        <div className="lg:col-span-1">
+          <ExpenseTargetCard onEdit={() => setShowTargetModal(true)} />
         </div>
 
-        {isLoading ? (
-          <div className="divide-y divide-slate-100">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-3.5 animate-pulse">
-                <div className="skeleton w-8 h-8 rounded-lg flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="skeleton h-3.5 w-32" />
-                  <div className="skeleton h-3 w-20" />
-                </div>
-                <div className="skeleton h-4 w-16" />
-              </div>
-            ))}
+        {/* Recent Transactions */}
+        <div className="card overflow-hidden lg:col-span-2">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">Recent Transactions</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Your latest activity</p>
+            </div>
+            <button
+              onClick={() => navigate('/transactions')}
+              className="flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              View all <ArrowRight size={13} />
+            </button>
           </div>
-        ) : !recentTransactions?.length ? (
-          <div className="py-12 text-center">
-            <Tag size={32} className="mx-auto text-slate-300 mb-3" />
-            <p className="text-sm font-medium text-slate-500">No transactions yet</p>
-            <p className="text-xs text-slate-400 mt-1">Add your first transaction to get started</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-50">
-            {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/50 transition-colors">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                  }`}
-                >
-                  <span className="text-sm font-bold">{tx.type === 'INCOME' ? '↑' : '↓'}</span>
+
+          {isLoading ? (
+            <div className="divide-y divide-slate-100">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-5 py-3.5 animate-pulse">
+                  <div className="skeleton w-8 h-8 rounded-lg flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="skeleton h-3.5 w-32" />
+                    <div className="skeleton h-3 w-20" />
+                  </div>
+                  <div className="skeleton h-4 w-16" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">{tx.title}</p>
-                  <p className="text-xs text-slate-400">
-                    {tx.category?.name} · {formatDate(tx.transactionDate)}
-                  </p>
+              ))}
+            </div>
+          ) : !recentTransactions?.length ? (
+            <div className="py-12 text-center">
+              <Tag size={32} className="mx-auto text-slate-300 mb-3" />
+              <p className="text-sm font-medium text-slate-500">No transactions yet</p>
+              <p className="text-xs text-slate-400 mt-1">Add your first transaction to get started</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {recentTransactions.map((tx) => (
+                <div key={tx.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50/50 transition-colors">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                    }`}
+                  >
+                    <span className="text-sm font-bold">{tx.type === 'INCOME' ? '↑' : '↓'}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{tx.title}</p>
+                    <p className="text-xs text-slate-400">
+                      {tx.category?.name} · {formatDate(tx.transactionDate)}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-sm font-semibold ${
+                      tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'
+                    }`}
+                  >
+                    {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                  </span>
                 </div>
-                <span
-                  className={`text-sm font-semibold ${
-                    tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'
-                  }`}
-                >
-                  {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick actions */}
@@ -338,12 +350,16 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Transaction modal */}
       <TransactionModal
         isOpen={showTxModal}
         onClose={() => setShowTxModal(false)}
         onSuccess={loadDashboard}
         defaultType={txModalType}
+      />
+
+      <ExpenseTargetModal
+        isOpen={showTargetModal}
+        onClose={() => setShowTargetModal(false)}
       />
     </div>
   );

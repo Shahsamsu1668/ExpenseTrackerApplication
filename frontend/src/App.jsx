@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { ExpenseTargetProvider } from './context/ExpenseTargetContext';
 import { ProtectedRoute, PublicRoute } from './components/RouteGuards';
 
 import DashboardLayout from './layouts/DashboardLayout';
@@ -16,29 +17,31 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Redirect root to dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <ExpenseTargetProvider>
+          <Routes>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Public routes — redirect to dashboard if already logged in */}
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
-
-          {/* Protected routes — redirect to login if not authenticated */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/profile" element={<Profile />} />
+            {/* Public routes — redirect to dashboard if already logged in */}
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Route>
-          </Route>
 
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Protected routes — redirect to login if not authenticated */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
+            </Route>
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ExpenseTargetProvider>
 
         {/* Toast notifications */}
         <Toaster

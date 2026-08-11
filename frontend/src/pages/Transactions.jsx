@@ -8,6 +8,7 @@ import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Button from '../components/Button';
 import toast from 'react-hot-toast';
+import { useExpenseTarget } from '../context/ExpenseTargetContext';
 
 const EMPTY_FILTERS = {
   search: '',
@@ -32,6 +33,7 @@ const Transactions = () => {
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { fetchTargetStatus } = useExpenseTarget();
 
   // Load categories for filter dropdown
   useEffect(() => {
@@ -85,7 +87,8 @@ const Transactions = () => {
       await transactionService.delete(deleteId);
       toast.success('Transaction deleted');
       setDeleteId(null);
-      loadTransactions();
+      await loadTransactions();
+      await fetchTargetStatus();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -311,11 +314,10 @@ const Transactions = () => {
         )}
       </div>
 
-      {/* Transaction Modal */}
       <TransactionModal
         isOpen={showModal}
         onClose={() => { setShowModal(false); setEditData(null); }}
-        onSuccess={loadTransactions}
+        onSuccess={async () => { await loadTransactions(); await fetchTargetStatus(); }}
         editData={editData}
       />
 

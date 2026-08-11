@@ -21,6 +21,8 @@ Expense Tracker is a modern SaaS-style financial dashboard that allows users to 
 - ✅ Expense breakdown donut chart by category
 - ✅ Search transactions by title
 - ✅ Filter by Type, Category, and Date Range
+- ✅ Monthly Expense Target with visual tracking
+- ✅ Target notifications (Approaching and Exceeded states)
 - ✅ Server-side pagination
 - ✅ Custom elegant grayscale/slate UI theme
 - ✅ User profile management (Profile picture uploads & User ID display)
@@ -308,6 +310,24 @@ GET /api/transactions?type=EXPENSE&startDate=2026-01-01&endDate=2026-01-31&page=
 }
 ```
 
+### EXPENSE TARGET
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/expense-target` | Required | Get current expense target |
+| POST | `/api/expense-target` | Required | Create or update expense target |
+| PUT | `/api/expense-target` | Required | Update expense target |
+| DELETE | `/api/expense-target` | Required | Remove expense target |
+| GET | `/api/expense-target/status` | Required | Get calculation of spent, remaining, and exceeded status |
+
+**Create/Update body:**
+```json
+{
+  "amount": 20000,
+  "period": "MONTHLY"
+}
+```
+
 ### DASHBOARD
 
 | Method | Endpoint | Auth | Description |
@@ -334,6 +354,16 @@ The application uses JWT (JSON Web Tokens) for stateless authentication:
 4. Backend middleware verifies the token on every protected route
 5. User identity (`userId`) is always taken from the **verified JWT**, never from request body
 6. On token expiry or invalid token, the backend returns 401, which the frontend interceptor handles by clearing state and redirecting to `/login`
+
+---
+
+## Expense Target System
+
+The system features a monthly expense target tracker:
+- **Monthly Calculation:** It dynamically sums all `EXPENSE` transactions for the authenticated user within the current calendar month.
+- **Visual Feedback:** Shows a progress bar on the dashboard. It turns orange at 80% (approaching target) and red at 100% (exceeded).
+- **Notification Behavior:** If an added or edited transaction causes the total expenses to exceed the target, an in-app toast notification appears instantly. This notification is cached in the browser for the current month so it doesn't repeatedly show on page refreshes, but recalculates accurately if transactions are deleted or modified.
+
 
 ---
 

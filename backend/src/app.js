@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const expenseTargetRoutes = require('./routes/expenseTargetRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const path = require('path');
@@ -54,6 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/expense-target', expenseTargetRoutes);
 
 // 404 handler for unknown API routes
 app.use('/api/*', (req, res) => {
